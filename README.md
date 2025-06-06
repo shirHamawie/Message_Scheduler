@@ -1,4 +1,4 @@
-# Message_Scheduler
+# Message Scheduler
 
 A scalable, persistent message scheduling system built with Node.js, TypeScript, Express, and Redis.  
 Messages can be scheduled for future delivery, and the system ensures reliable, distributed processing with Redis-based locking.
