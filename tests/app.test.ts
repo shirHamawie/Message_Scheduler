@@ -153,4 +153,8 @@ describe('Message Scheduler System', () => {
 
     expect(logs).not.toContain(message);
   });
+
+  afterAll(async () => {
+    await redis.flushdb();
+  });
 });
