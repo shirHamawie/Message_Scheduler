@@ -1,41 +1,42 @@
 import { v4 as uuidv4 } from 'uuid';
-import redis from '../redisClient';
-import { IMessageStore, ScheduledMessage } from '../types';
+import { IMessageStore, ScheduledMessage, IHashCacheStore } from '../types';
+
+const SCHEDULED_MESSAGES_SET = 'scheduled_messages';
+export const MESSAGE_KEY_PREFIX = 'message:';
 
 export class RedisMessageStore implements IMessageStore {
-  private redisClient: typeof redis;
+  private cache: IHashCacheStore;
 
-  constructor(redisClient: typeof redis) {
-    this.redisClient = redisClient;
+  constructor(cache: IHashCacheStore) {
+    this.cache = cache;
   }
 
   async addMessage(time: string | number | Date, message: string): Promise<string> {
     const timestamp = new Date(time).getTime();
     const id = uuidv4();
 
-    await this.redisClient.hmset(`message:${id}`, {
+    await this.cache.set(`${MESSAGE_KEY_PREFIX}${id}`, {
       message,
       timestamp
     });
 
-    await this.redisClient.zadd('scheduled_messages', timestamp, id);
+    await this.cache.add(SCHEDULED_MESSAGES_SET, timestamp, id);
     return id;
   }
 
   async getDueMessages(): Promise<ScheduledMessage[]> {
     const now = Date.now();
-    const ids: string[] = await this.redisClient.zrangebyscore('scheduled_messages', 0, now);
+    const ids: string[] = await this.cache.getRangeByScore(SCHEDULED_MESSAGES_SET, 0, now);
 
-    const pipeline = this.redisClient.pipeline();
-    ids.forEach(id => pipeline.hgetall(`message:${id}`));
+    const pipeline = this.cache.pipeline();
+    ids.forEach(id => pipeline.hgetall(`${MESSAGE_KEY_PREFIX}${id}`));
     const results = await pipeline.exec();
 
     const messages: ScheduledMessage[] = [];
 
     if (results) {
-      results.forEach(([, data], idx) => {
+      results.forEach(([, data]: [any, any], idx: number) => {
         const hash = data as Record<string, string>;
-        
         if (hash && hash.message && hash.timestamp) {
           messages.push({
             id: ids[idx],
@@ -49,9 +50,6 @@ export class RedisMessageStore implements IMessageStore {
   }
 
   async removeMessage(id: string): Promise<void> {
-    const multi = this.redisClient.multi();
-    multi.zrem('scheduled_messages', id);
-    multi.del(`message:${id}`);
-    await multi.exec();
+    await this.cache.remove(SCHEDULED_MESSAGES_SET, id);
   }
 }
