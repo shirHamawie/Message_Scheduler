@@ -1,6 +1,6 @@
 import express from 'express';
 import redis from './redisClient';
-import { RedisCacheStore } from './messageStores/redisCacheStore';
+import { RedisCacheStore } from './cacheStores/redisCacheStore';
 import { RedisMessageStore } from './messageStores/redisMessageStore';
 import { MessageService } from './services/messageService';
 import { MessageScheduler } from './schedulers/messageScheduler';

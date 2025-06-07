@@ -2,7 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import redis from '../redisClient';
 import { RedisMessageStore } from '../messageStores/redisMessageStore';
-import { RedisCacheStore } from '../messageStores/redisCacheStore';
+import { RedisCacheStore } from '../cacheStores/redisCacheStore';
 import { MessageService } from '../services/messageService';
 import { MessageScheduler } from '../schedulers/messageScheduler';
 import { APIController } from '../controllers/APIController';
