@@ -20,6 +20,8 @@ Messages can be scheduled for future delivery, and the system ensures reliable, 
 
 ```
 .
+├── cacheStores/
+│   └── redisCacheStore.ts
 ├── controllers/
 │   └── APIController.ts
 ├── messageStores/
@@ -55,6 +57,7 @@ Then build the project:
 npx tsc
 ```
 
+---
 
 ## Running the Server
 
@@ -101,13 +104,16 @@ npm test
 - A background scheduler polls for due messages and prints them (using the injected logger).
 - Redis locks prevent duplicate processing when multiple schedulers are running.
 - The API validates input and schedules messages for future delivery.
+- All cache operations are abstracted via an interface, making the codebase extensible and testable.
 
 ---
 
 ## Customization
 
-- **Logger**: Pass any logger implementing `{ log: (msg: string) => void }` to `MessageScheduler`.
+- **Logger**: Pass any logger implementing `{ log: (msg: string) => void, error: (msg: string) => void }` to `MessageScheduler`.
 - **Scheduler interval**: Change the polling interval when constructing `MessageScheduler`.
+
+---
 
 ---
 
